@@ -125,6 +125,9 @@ void function MpS2s()
 
 	PrecacheWeapon( "sp_weapon_swarm_rockets_s2s" )
 
+	FlagInit( "StopDynamicSky" )
+
+	RegisterSignal( "landpop" )
 	RegisterSignal( "MaltaSideGunAimAtThink" )
 
 	ClassicMP_SetLevelIntro( ClassicMP_s2space_Setup, S2SPACE_INTRO_LENGTH )
@@ -166,6 +169,10 @@ void function EntitiesDidLoad()
 	ShipGeoHide( file.malta, "GEO_CHUNK_DECK_FAKE" )
 	ShipGeoHide( file.OLA, 	"DRACONIS_CHUNK_LOWDEF" )
 	ShipGeoHide( file.trinity, "TRINITY_CHUNK_INTERIOR_FAKE" )
+
+	//setup skybox
+	Sky_InitData()
+	SkyAnimatePart1()
 
 	GetEntByScriptName( "MaltaSideClip" ).NotSolid()
 	
@@ -495,4 +502,171 @@ ShipStruct function GetTrinity()
 ShipStruct function GetOLA()
 {
 	return file.OLA
+}
+
+/************************************************************************************************\
+
+███████╗██╗  ██╗██╗   ██╗██████╗  ██████╗ ██╗  ██╗
+██╔════╝██║ ██╔╝╚██╗ ██╔╝██╔══██╗██╔═══██╗╚██╗██╔╝
+███████╗█████╔╝  ╚████╔╝ ██████╔╝██║   ██║ ╚███╔╝
+╚════██║██╔═██╗   ╚██╔╝  ██╔══██╗██║   ██║ ██╔██╗
+███████║██║  ██╗   ██║   ██████╔╝╚██████╔╝██╔╝ ██╗
+╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
+
+\************************************************************************************************/
+
+struct SkyBoxLandSection
+{
+	//lanes
+	table<string,entity> lane
+	array<entity> extras
+}
+
+const int MAXLANDTAGS = 8
+void function SkyAnimatePart1()
+{
+	//wait 0.1
+	entity skyRig 	= CreateSkyRig()
+	//thread PlayAnimTeleport( skyRig, "vs_canyon_run_loop" )
+	skyRig.Anim_Play( "vs_canyon_run_loop" )
+	array<SkyBoxLandSection> landModels = Sky_CreateInitialLandScape( skyRig )
+	thread DynamicSkyThink( skyRig , landModels )
+
+	#if DEV
+		if ( DEV_DRAWSKYRIG )
+			thread DEV_DrawSkyRig( skyRig, landModels )
+	#endif
+}
+
+entity function CreateSkyRig()
+{
+	entity skycam = GetEnt( "skybox_cam_level" )
+	skycam.DisableHibernation()
+
+	entity skyRig = CreateExpensiveScriptMoverModel( RIG_LAND_SKYBOX, skycam.GetOrigin(), CONVOYDIR )
+	skyRig.DisableHibernation()
+
+	skyRig.EnableDebugBrokenInterpolation()
+
+	// file.skyRig = skyRig
+
+	return skyRig
+}
+
+array<SkyBoxLandSection> function Sky_CreateInitialLandScape( entity skyRig )
+{
+	array<SkyBoxLandSection> landModels = []
+
+	for ( int i = 0; i < MAXLANDTAGS; i++ )
+	{
+		string tagIndex = "LAND_" + ( i + 1 )
+		SkyBoxLandSection landSection
+		entity model
+
+		model = CreatePropDynamic( SE_LAND_A )
+		model.SetParent( skyRig, tagIndex, false, 0 )
+		landSection.lane[ "center" ] <- model
+
+		model = CreatePropDynamic( SE_VISTA_A1 )
+		model.SetParent( skyRig, tagIndex, false, 0 )
+		landSection.lane[ "left" ] <- model
+
+		model = CreatePropDynamic( SE_VISTA_B2 )
+		model.SetParent( skyRig, tagIndex, false, 0 )
+		landSection.lane[ "right" ] <- model
+
+		landModels.append( landSection )
+	}
+
+	//once it's built, randomize it using the regular path
+	for ( int prevLandTag = MAXLANDTAGS-1; prevLandTag >= 0; prevLandTag-- )
+		Sky_PrepareNextLandPiece( prevLandTag, landModels, skyRig )
+
+	return landModels
+}
+
+void function Sky_InitData()
+{
+	//create a tree of options that tell the script what next piece we can go too
+	file.landTree[ "center" ] 	<- {}
+	file.landTree[ "left" ] 	<- {}
+	file.landTree[ "right" ] 	<- {}
+
+	file.landTree[ "center" ][ SE_LAND_A ] 		<- [ SE_LAND_A, SE_LAND_AB ]
+	file.landTree[ "center" ][ SE_LAND_B ] 		<- [ SE_LAND_B, SE_LAND_BA ]
+	file.landTree[ "center" ][ SE_LAND_AB ] 	<- [ SE_LAND_B ]
+	file.landTree[ "center" ][ SE_LAND_BA ] 	<- [ SE_LAND_A ]
+	file.landTree[ "left" ][ SE_VISTA_A1 ] 		<- [ SE_VISTA_A2 ]
+	file.landTree[ "left" ][ SE_VISTA_A2 ] 		<- [ SE_VISTA_A3 ]
+	file.landTree[ "left" ][ SE_VISTA_A3 ] 		<- [ SE_VISTA_A4 ]
+	file.landTree[ "left" ][ SE_VISTA_A4 ] 		<- [ SE_VISTA_A1 ]
+	file.landTree[ "right" ][ SE_VISTA_B1 ] 	<- [ SE_VISTA_B2 ]
+	file.landTree[ "right" ][ SE_VISTA_B2 ] 	<- [ SE_VISTA_B3 ]
+	file.landTree[ "right" ][ SE_VISTA_B3 ] 	<- [ SE_VISTA_B4 ]
+	file.landTree[ "right" ][ SE_VISTA_B4 ] 	<- [ SE_VISTA_B1 ]
+}
+
+void function DynamicSkyThink( entity skyRig, array<SkyBoxLandSection> landModels )
+{
+	if ( Flag( "StopDynamicSky" ) )
+		return
+	FlagEnd( "StopDynamicSky" )
+	//the last one is the first one
+	int prevLandTag = 0
+
+	//bring in new land pieces
+	while( 1 )
+	{
+		skyRig.WaitSignal( "landpop" )
+		int nextLandTag = Sky_PrepareNextLandPiece( prevLandTag, landModels, skyRig )
+		prevLandTag = nextLandTag
+
+		#if DEV
+			if ( DEV_DRAWSKYRIG && GetMoDevState() )
+				DebugDrawText( skyRig.GetOrigin() + < 500,1500,200 >, "Last Land Tag: " + ( prevLandTag + 1 ), true, 8.0 )
+		#endif
+	}
+}
+
+int function Sky_PrepareNextLandPiece( int prevLandTag, array<SkyBoxLandSection> landModels, entity skyRig )
+{
+	int nextLandTag = Sky_GetNextLandTag( prevLandTag )
+	SkyBoxLandSection nextLandSection = landModels[ nextLandTag ]
+	SkyBoxLandSection prevLandSection = landModels[ prevLandTag ]
+
+	//destroy the extras that were on it
+	if ( nextLandSection.extras.len() )
+	{
+		foreach( element in nextLandSection.extras )
+			element.Destroy()
+		nextLandSection.extras = []
+	}
+
+	//prepare a new land piece
+	foreach ( lane, landModel in nextLandSection.lane )
+	{
+		asset prevLandAsset = prevLandSection.lane[ lane ].GetModelName()
+		asset nextLandAsset = file.landTree[ lane ][ prevLandAsset ].getrandom()
+		nextLandSection.lane[ lane ].SetModel( nextLandAsset )
+	}
+
+	//options for extras
+
+	//always have clouds
+	array<asset> cloudModels = [ SE_CLOUDS_A, SE_CLOUDS_B, SE_CLOUDS_C ]
+	entity clouds = CreatePropDynamic( cloudModels.getrandom() )
+	string tagIndex = "LAND_" + ( nextLandTag + 1 )
+	clouds.SetParent( skyRig, tagIndex, false, 0 )
+	nextLandSection.extras.append( clouds )
+
+	return nextLandTag
+}
+
+int function Sky_GetNextLandTag( int prevLandTag )
+{
+	int nextLandTag = prevLandTag - 1
+	if ( nextLandTag < 0 )
+		nextLandTag = MAXLANDTAGS - 1
+
+	return nextLandTag
 }

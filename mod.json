@@ -127,13 +127,6 @@
 			"RunOn": "SERVER && MP"
 		},
 		{
-			"Path": "capship_triggers.nut",
-			"RunOn": "SERVER && MP",
-			"ServerCallback": {
-				"After": "CapshipTriggersInit"
-			}
-		},
-		{
 			"Path": "capship_move.nut",
 			"RunOn": "SERVER && MP"
 		}

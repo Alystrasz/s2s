@@ -105,6 +105,10 @@
 			"RunOn": "SERVER && MP"
 		},
 		{
+			"Path": "ships/trinity.gnut",
+			"RunOn": "SERVER && MP"
+		},
+		{
 			"Path": "mp_s2s_utility.gnut",
 			"RunOn": "SERVER && MP"
 		},

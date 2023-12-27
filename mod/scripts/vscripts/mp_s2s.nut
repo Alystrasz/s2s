@@ -126,6 +126,8 @@ void function MpS2s()
 	PrecacheWeapon( "sp_weapon_swarm_rockets_s2s" )
 
 	FlagInit( "StopDynamicSky" )
+	FlagInit( "trinityLeftHangarDoor1" )
+	FlagInit( "trinityLeftHangarDoor2" )
 
 	RegisterSignal( "landpop" )
 	RegisterSignal( "MaltaSideGunAimAtThink" )
@@ -253,6 +255,8 @@ void function FinalSetup()
 
 	GetEntByScriptName( "MaltaSideClip" ).Solid() //the boss missiles should be passed by now
 	GetEntByScriptName( "MaltaSideClip" ).kv.CollisionGroup = TRACE_COLLISION_GROUP_BLOCK_WEAPONS//this it shootable but not have phys collision
+
+	thread TrinityTestDoors()
 	
 	WaitSignal( file.malta, "Goal" )
 }
@@ -269,22 +273,22 @@ void function PlayDecoyShipIntro()
 	decoyShip.SetAngles( file.trinity.mover.GetAngles() )
 	LocalVec startOrigin = WorldToLocalOrigin( file.trinity.mover.GetOrigin() )
 
-	Ship_CleanDelete( file.trinity )
+	//Ship_CleanDelete( file.trinity )
 	SetOriginLocal( decoyShip, startOrigin )
 
 	vector fwd = decoyShip.GetForwardVector()
 	vector pos = GetOriginLocal( decoyShip ).v + < 0, -80000, -10000 >
 	LocalVec shipEndPos = CLVec( pos )
 
-	EmitSoundOnEntity( decoyShip, "Hermes_Explode_Temp" )
+	//EmitSoundOnEntity( decoyShip, "Hermes_Explode_Temp" )
 
 	string attachAlias = "Explosion_LG_Impact"
 	int attachID = decoyShip.LookupAttachment( attachAlias )
 	vector attachOrg = decoyShip.GetAttachmentOrigin( attachID )
 
 	//Main Death Explosion
-	entity destroyFX = StartParticleEffectOnEntity( decoyShip, GetParticleSystemIndex( FX_DECOY_SHIP_DESTRUCTION ), FX_PATTACH_POINT_FOLLOW, attachID )
-
+	//entity destroyFX = StartParticleEffectOnEntity( decoyShip, GetParticleSystemIndex( FX_DECOY_SHIP_DESTRUCTION ), FX_PATTACH_POINT_FOLLOW, attachID )
+/*
 	string crashAnim = "s2s_trinity_destroyed_explode"
 	float animtime = 20//decoyShip.GetSequenceDuration( crashAnim )
 	thread PlayAnim( decoyShip, crashAnim, decoyShip )
@@ -295,7 +299,7 @@ void function PlayDecoyShipIntro()
 	wait animtime - 4
 
 	if ( IsValid( decoyShip ) )
-		decoyShip.Destroy()
+		decoyShip.Destroy()*/
 }
 
 

@@ -1,0 +1,99 @@
+global function TrinityTestDoors
+
+void function TrinityHangarDoorsOpen( string doorname1, string doorname2, string _setFlag, bool teleport = false )
+{
+	entity door1, door2, link1, link2
+	vector origin1, origin2
+	entity _parent = GetEntByScriptName( "scr_trinity_node_1b" )
+
+	door1 = GetEntByScriptName( doorname1 )
+	link1 = door1.GetLinkEnt()
+	origin1 = link1.GetLocalOrigin()
+	link1.ClearParent()
+	link1.SetOrigin( door1.GetOrigin() )
+	link1.SetParent( _parent, "", true, 0 )
+
+	door2 = GetEntByScriptName( doorname2 )
+	link2 = door2.GetLinkEnt()
+	origin2 = link2.GetLocalOrigin()
+	link2.ClearParent()
+	link2.SetOrigin( door2.GetOrigin() )
+	link2.SetParent( _parent, "", true, 0 )
+
+	float time = 5 // 11
+	float acc = 0.5
+	if ( teleport )
+	{
+		time = 0.4
+		acc = 0.1
+	}
+
+	door1.NonPhysicsSetMoveModeLocal( true )
+	door2.NonPhysicsSetMoveModeLocal( true )
+
+	door1.NonPhysicsMoveTo( origin1, time, acc, acc )
+	wait ( time * 0.4 )
+
+	time *= 0.5
+
+	door2.NonPhysicsMoveTo( origin2, time, acc, acc )
+
+	FlagSet( _setFlag )
+}
+
+void function TrinityHangarDoorsClose( string doorname1, string doorname2, string _clearflag, bool teleport = false )
+{
+	entity door1, door2, link1, link2
+	vector origin1, origin2
+	entity _parent = GetEntByScriptName( "scr_trinity_node_1b" )
+
+	door1 = GetEntByScriptName( doorname1 )
+	link1 = door1.GetLinkEnt()
+	origin1 = link1.GetLocalOrigin()
+	link1.ClearParent()
+	link1.SetOrigin( door1.GetOrigin() )
+	link1.SetParent( _parent, "", true, 0 )
+
+	door2 = GetEntByScriptName( doorname2 )
+	link2 = door2.GetLinkEnt()
+	origin2 = link2.GetLocalOrigin()
+	link2.ClearParent()
+	link2.SetOrigin( door2.GetOrigin() )
+	link2.SetParent( _parent, "", true, 0 )
+
+	float time = 5 // 11
+	float acc = 0.5
+	if ( teleport )
+	{
+		time = 0.4
+		acc = 0.1
+	}
+
+	door1.NonPhysicsMoveTo( origin1, time, acc, acc )
+
+	float time2 = time * 0.5
+	door2.NonPhysicsMoveTo( origin2, time2, acc, acc )
+
+	wait time + 0.1
+	FlagClear( _clearflag )
+}
+
+void function TrinityTestDoors()
+{
+    wait 10
+
+    while (true)
+    {
+        thread TrinityHangarDoorsOpen( "trinity_hangardoorLT2", "trinity_hangardoorLB2", "trinityLeftHangarDoor2" )
+        thread TrinityHangarDoorsOpen( "trinity_hangardoorLT", "trinity_hangardoorLB", "trinityLeftHangarDoor1" )
+        FlagWait( "trinityLeftHangarDoor1" )
+        FlagWait( "trinityLeftHangarDoor2" )
+        wait 3
+
+        thread TrinityHangarDoorsClose( "trinity_hangardoorLT2", "trinity_hangardoorLB2", "trinityLeftHangarDoor2" )
+        thread TrinityHangarDoorsClose( "trinity_hangardoorLT", "trinity_hangardoorLB", "trinityLeftHangarDoor1" )
+        
+        FlagWaitClear( "trinityLeftHangarDoor1" )
+        FlagWaitClear( "trinityLeftHangarDoor2" )
+    }
+}

@@ -138,6 +138,10 @@ void function PlayerRespawnedOnS2s( entity player )
 	if ( HasSwitchedSides() )
 		team = GetOtherTeam( team )
     
+    // Bypass this to respawn in Malta systematically
+    spawnpoints = spawnpoints_imc
+    player.SetAngles( <0,0,0> )
+    /*
     if ( team == TEAM_IMC )
     {
         spawnpoints = spawnpoints_imc
@@ -147,7 +151,7 @@ void function PlayerRespawnedOnS2s( entity player )
     {
         spawnpoints = spawnpoint_militia
         player.SetAngles( <0,180,0> )
-    }
+    }*/
 
     print( spawnpoints_imc.len() )
     print( spawnpoint_militia.len() )

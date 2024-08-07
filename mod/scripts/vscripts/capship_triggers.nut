@@ -1,10 +1,4 @@
 global function CapshipTriggersInit
-global function Give0G
-global function Take0G
-global function GetAngledBoxCorners
-global function GetEntityCorners
-global function LinePlaneCollision
-global function GetChildren
 global table<entity, bool> is0G
 
 struct {

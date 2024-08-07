@@ -101,10 +101,6 @@
 			"RunOn": "SERVER && MP"
 		},
 		{
-			"Path": "gibraltar.gnut",
-			"RunOn": "SERVER && MP"
-		},
-		{
 			"Path": "ships/trinity.gnut",
 			"RunOn": "SERVER && MP"
 		},

@@ -234,9 +234,7 @@ void function EntitiesDidLoad()
 
 void function FinalSetup()
 {
-	thread HangarLiftPanelsClose( 0.1 )
-	thread HangarLiftLower( 10.0, 0.2, 1.0 )
-
+	InitMalta()
 	MaltaSideGunsRandomFire()
 
 	LocalVec origin1 = GetOriginLocal( file.malta.mover )

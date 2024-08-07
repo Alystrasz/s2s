@@ -1,4 +1,10 @@
-globalize_all_functions
+global function InitMalta
+
+void function InitMalta()
+{
+	thread HangarLiftPanelsClose( 0.1 )
+	thread HangarLiftLower( 10.0, 0.2, 1.0 )
+}
 
 void function HangarLiftPanelsClose( float rotTime )
 {

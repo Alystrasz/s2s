@@ -97,7 +97,7 @@
 			}
 		},
 		{
-			"Path": "malta.gnut",
+			"Path": "ships/malta/malta.gnut",
 			"RunOn": "SERVER && MP"
 		},
 		{

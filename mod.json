@@ -131,10 +131,10 @@
 			"RunOn": "SERVER && MP"
 		},
 		{
-			"Path": "capship_triggers.nut",
+			"Path": "ships/malta/space_triggers.nut",
 			"RunOn": "SERVER && MP",
 			"ServerCallback": {
-				"After": "CapshipTriggersInit"
+				"After": "MaltaTriggersInit"
 			}
 		},
 		{

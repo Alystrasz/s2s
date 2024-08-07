@@ -332,3 +332,17 @@ vector function LinePlaneCollision( vector planeNormal, vector planePoint, vecto
     float si = -planeNormal.Dot( w ) / ndotu
     return w + si * rayDirection + planePoint
 }
+
+array<entity> function GetChildren( entity p )
+{
+    array<entity> children
+	entity child = p.FirstMoveChild()
+
+	while ( child )
+	{
+        children.append( child)
+		child = child.NextMovePeer()
+	}
+
+    return children
+}

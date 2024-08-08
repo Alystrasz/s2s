@@ -20,9 +20,9 @@ void function InitMalta()
 void function HangarLiftLoop()
 {
 	while (1) {
-		waitthread HangarLiftLower( 6.6, 0.2, 1.0 )
+		waitthread HangarLiftLower( 6.6 )
 		wait 2
-		waitthread HangarLiftElevate( 6.6, 0.2, 1.0 )
+		waitthread HangarLiftElevate( 6.6 )
 		wait 2
 	}
 }
@@ -55,14 +55,14 @@ void function HangarLiftPanelsOpen( float rotTime )
 	wait rotTime
 }
 
-void function HangarLiftLower( float liftTime, float panelDelay, float panelTime )
+void function HangarLiftLower( float liftTime )
 {
 	malta.hangarLift.NonPhysicsMoveTo( malta.hangarLiftDownPosition, liftTime, liftTime * 0.15, liftTime * 0.075 )
 	EmitSoundOnEntity( malta.hangarLift, "s2s_hangar_platform_down" )
 	wait liftTime
 }
 
-void function HangarLiftElevate( float liftTime, float panelDelay, float panelTime )
+void function HangarLiftElevate( float liftTime )
 {
 	malta.hangarLift.NonPhysicsMoveTo( malta.hangarLiftUpPosition, liftTime, liftTime * 0.15, liftTime * 0.075 )
 	EmitSoundOnEntity( malta.hangarLift, "s2s_hangar_platform_down" )

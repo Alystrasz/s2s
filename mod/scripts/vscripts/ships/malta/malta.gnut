@@ -1,9 +1,30 @@
 global function InitMalta
 
+struct {
+	entity hangarLift
+	vector hangarLiftUpPosition
+	vector hangarLiftDownPosition
+} malta
+
 void function InitMalta()
 {
-	thread HangarLiftPanelsClose( 0.1 )
-	thread HangarLiftLower( 10.0, 0.2, 1.0 )
+	// Hangar lift
+	malta.hangarLift = GetEntByScriptName( "hangarLiftUpPos" )
+	malta.hangarLift.NonPhysicsSetMoveModeLocal( true )
+	malta.hangarLiftUpPosition = malta.hangarLift.GetLocalOrigin()
+	malta.hangarLiftDownPosition = GetEntByScriptName( "hangarLiftDownPos" ).GetLocalOrigin()
+	GetEntByScriptName( "hangarLiftDownPos" ).Destroy()
+	thread HangarLiftLoop()
+}
+
+void function HangarLiftLoop()
+{
+	while (1) {
+		waitthread HangarLiftLower( 10.0, 0.2, 1.0 )
+		wait 2
+		waitthread HangarLiftElevate( 10.0, 0.2, 1.0 )
+		wait 2
+	}
 }
 
 void function HangarLiftPanelsClose( float rotTime )
@@ -36,20 +57,16 @@ void function HangarLiftPanelsOpen( float rotTime )
 
 void function HangarLiftLower( float liftTime, float panelDelay, float panelTime )
 {
-	//move the lift
-	entity hangarLiftUp = GetEntByScriptName( "hangarLiftUpPos" )
-	entity hangarLiftDown = GetEntByScriptName( "hangarLiftDownPos" )
+	malta.hangarLift.NonPhysicsMoveTo( malta.hangarLiftDownPosition, liftTime, liftTime * 0.15, liftTime * 0.075 )
+	EmitSoundOnEntity( malta.hangarLift, "s2s_hangar_platform_down" )
+	wait liftTime
+}
 
-	hangarLiftUp.NonPhysicsSetMoveModeLocal( true )
-	hangarLiftUp.NonPhysicsMoveTo( hangarLiftDown.GetLocalOrigin(), liftTime, liftTime * 0.15, liftTime * 0.075 )
-	EmitSoundOnEntity( hangarLiftUp, "s2s_hangar_platform_down" )
-	hangarLiftDown.Destroy()
-
-	// delaythread( liftTime ) FlagSet( "HangarLiftDone" )
-
-	wait panelDelay
-
-	thread HangarLiftPanelsOpen( panelTime )
+void function HangarLiftElevate( float liftTime, float panelDelay, float panelTime )
+{
+	malta.hangarLift.NonPhysicsMoveTo( malta.hangarLiftUpPosition, liftTime, liftTime * 0.15, liftTime * 0.075 )
+	EmitSoundOnEntity( malta.hangarLift, "s2s_hangar_platform_down" )
+	wait liftTime
 }
 
 
